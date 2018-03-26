@@ -1,0 +1,13 @@
+{
+  "name": "sqs_ecs_task_poc",
+  "version": "1.0.0",
+  "description": "Node.js on Docker",
+  "author": "Foysal Iqbal <foysal.iqbal@gmail.com>",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.181.0"
+  }
+}
