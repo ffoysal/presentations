@@ -11,7 +11,7 @@ variable "aws_region" {}
 variable "environment_name" {}
 
 variable "container_image_url" {
-  default = "665670730843.dkr.ecr.us-east-1.amazonaws.com/lazy:2.2.2"
+  default = "<account_id>.dkr.ecr.us-east-1.amazonaws.com/lazy:2.2.2"
 }
 
 variable "aws_ecs_amis" {
