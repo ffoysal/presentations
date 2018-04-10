@@ -12,6 +12,10 @@
     {
       "name": "AWS_REGION",
       "value": "${region}"
+    },
+    {
+      "name": "TABLE_NAME",
+      "value": "${ddb_table}"
     }
   ],
   "logConfiguration": {

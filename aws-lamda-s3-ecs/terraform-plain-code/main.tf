@@ -12,6 +12,7 @@ data "template_file" "container_definitions" {
   vars {
     region = "${var.aws_region}"
     sqs_url = "${aws_sqs_queue.meetup_q.id}"
+    ddb_table = "${aws_dynamodb_table.meetup_table.id}"
     container_image_url = "${var.container_image_url}"
     log_group_name = "tf-meetup-${var.environment_name}"
   }
@@ -40,7 +41,7 @@ resource "aws_ecs_cluster" "meetup_cluster" {
 # Define a container instance
 resource "aws_instance" "ecs_instance" {
   ami = "${lookup(var.aws_ecs_amis, var.aws_region)}"
-  instance_type = "t2.micro"
+  instance_type = "${var.ec2_instance_type}"
   iam_instance_profile = "${aws_iam_instance_profile.instance_profile.name}"
   user_data = "${data.template_file.cloud_watch_log_config.rendered}"
   # Need public ip address so that can pull docker image from anywhere
@@ -81,29 +82,21 @@ resource "aws_lambda_function" "meetup_lambda" {
   handler = "taskLauncher.handler"
   source_code_hash = "${data.archive_file.lambda_zip.output_base64sha256}"
   runtime = "nodejs4.3"
+  environment {
+    variables = {
+      TD = "${aws_ecs_task_definition.meetup_task_definition.arn}"
+      CLUSTER = "${aws_ecs_cluster.meetup_cluster.name}"
+      QU= "${aws_sqs_queue.meetup_q.id}"
+    }
+  }
 }
 
 # Data for archiving lambda script
 data "archive_file" "lambda_zip" {
   type = "zip"
-  source {
-    content  = "${data.template_file.lambda_script.rendered}"
-    filename = "taskLauncher.js"
-  }
+  source_file="taskLauncher.js"
   output_path = "./taskLauncher.zip"
 }
-
-# Data for lambda script
-data "template_file" "lambda_script" {
-  template = "${file("./taskLauncher.js")}"
-
-  vars {
-    meetup_task_definition = "${aws_ecs_task_definition.meetup_task_definition.arn}"
-    meetup_cluster = "${aws_ecs_cluster.meetup_cluster.name}"
-    meetup_queue = "${aws_sqs_queue.meetup_q.id}"
-  }
-}
-
 
 # Lambda role
 resource "aws_iam_role" "lambda_role" {
@@ -155,6 +148,19 @@ resource "aws_s3_bucket_notification" "meetup_demo_bucket_notification" {
 }
 
 
+# DynamoDB
+resource "aws_dynamodb_table" "meetup_table" {
+  name           = "tf-meetup-${var.environment_name}"
+  hash_key       = "id"
+  read_capacity  = 10
+  write_capacity = 5
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+}
+
 # Terraform backend setup
 /*
 terraform {
@@ -165,3 +171,4 @@ backend "s3" {
   }
 }
 */
+

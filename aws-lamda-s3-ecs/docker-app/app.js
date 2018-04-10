@@ -3,8 +3,12 @@ let sqs = new AWS.SQS();
 let s3 = new AWS.S3();
 var fs = require('fs');
 
+
+let DDB = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
+
 let SQS_URL = "";
 
+let TABLE_NAME = process.env.TABLE_NAME;
 
 if (process.env.SQS_URL){
   SQS_URL = process.env.SQS_URL;
@@ -44,6 +48,22 @@ sqs.receiveMessage(params, (err, data) => {
       if (!err) {
         // print file content to the console
         console.log(data.Body.toString());
+        // write to DDB
+        let params = {
+          TableName: TABLE_NAME,
+          Item: {
+            id: key,
+            content: data.Body.toString()
+          },
+          ReturnValues: 'ALL_OLD'
+        };
+        DDB.put(params, (error, data)=>{
+          if(error){
+            console.log(error);
+          }else {
+            console.log("Data write successfule");
+          }
+        });
         // delete the message from the sqs
         let p = {
           QueueUrl: SQS_URL,
@@ -57,3 +77,4 @@ sqs.receiveMessage(params, (err, data) => {
     });
   }
 });
+

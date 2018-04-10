@@ -46,6 +46,14 @@
         "sqs:GetQueueAttributes"
       ],
       "Resource": "arn:aws:sqs:*:*:*"
+    },
+    {
+      "Sid": "Stmt1523327874808",
+      "Action": [
+        "dynamodb:PutItem"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
     }
   ]
 }

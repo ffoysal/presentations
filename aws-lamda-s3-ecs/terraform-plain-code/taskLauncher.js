@@ -5,9 +5,9 @@ var sqs = new aws.SQS({apiVersion: '2012-11-05'});
 var ecs = new aws.ECS({apiVersion: '2014-11-13'});
 
 // terraform apply will replace these values 
-var ecsTaskDefinition = "${meetup_task_definition}";
-var ecsCluster = "${meetup_cluster}";
-var sqsQueue = "${meetup_queue}";
+var ecsTaskDefinition = process.env.TD; //"${meetup_task_definition}";
+var ecsCluster = process.env.CLUSTER; //"${meetup_cluster}";
+var sqsQueue = process.env.QU; //"${meetup_queue}";
 
 exports.handler = function(event, context, callback) {
   var params = {
